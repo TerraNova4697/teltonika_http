@@ -28,3 +28,8 @@ class TokenPairDto(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "Bearer"
+
+
+class TransportDto(BaseModel):
+    imei: str
+    name: str

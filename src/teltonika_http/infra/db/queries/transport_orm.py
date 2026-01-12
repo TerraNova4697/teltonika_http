@@ -17,4 +17,3 @@ class TransportOrm(BaseOrm):
                 select(Transport) \
                     .options(joinedload(Transport.sensors))
             ).unique().scalars().all()
-

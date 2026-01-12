@@ -3,6 +3,10 @@ import logging
 from fastapi import FastAPI
 from .routes import admin, auth, users, transport
 
+from src.teltonika_http.config import initial_setup
+
+
+initial_setup()
 
 logger = logging.getLogger()
 
