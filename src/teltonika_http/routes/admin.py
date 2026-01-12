@@ -32,7 +32,7 @@ async def create_user(request: Request, body: AdminCreateUserDto, session: db_de
             detail="You don't have permission to perform this operation!"
         )
     try:
-        UserOrm.create(
+        UserOrm().create(
             session,
             username=body.username,
             hashed_password=AuthService.hash_password(body.password),

@@ -103,7 +103,7 @@ class AuthService:
         if not email or not user_id:
             logger.warning("Access token payload is missing required claims (sub/id)")
             raise NotValidatedException()
-        user = UserOrm.get_first(db, email=email, id=user_id)
+        user = UserOrm().get_first(db, email=email, id=user_id)
         if not user or not user.is_active:
             raise HTTPException(status_code=400, detail="Inactive user")
         return CurrentUserDto(email=email, id=user_id)
@@ -138,7 +138,7 @@ class AuthService:
     @staticmethod
     def authenticate_user(username: str, password: str, db) -> bool | UserModel:
         logger.debug(f"Authenticating username={username}")
-        user = UserOrm.get_first(session_factory=db, username=username)
+        user = UserOrm().get_first(session_factory=db, username=username)
         if not user:
             logger.warning(f"User not found: {username}")
             return False
