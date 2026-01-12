@@ -27,12 +27,13 @@ async def read_transport(
             .get_details(imei)
     except ItemNotFoundException:
         raise HTTPException(status_code=404, detail="Transport not found")
-    except Exception:
+    except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail="Internal server error")
         
     return result
 
-@router.post("/create", response_model=TransportDto)
+@router.post("/", response_model=TransportDto)
 async def create_transport(
     db: db_dep,
     transport: TransportDto,

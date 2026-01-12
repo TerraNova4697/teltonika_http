@@ -14,7 +14,7 @@ class TransportService(BaseService):
         item = self.db_orm().get_first(self.db, imei=imei)
         if not item:
             raise ItemNotFoundException
-        return TransportDto.model_validate(item)
+        return TransportDto.model_validate(item, from_attributes=True)
     
     async def create(self, transport: TransportDto):
         self.logger.info(transport.model_dump())
