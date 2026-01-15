@@ -7,10 +7,11 @@ from typing import Callable
 from sqlalchemy import select, update, delete, func
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 
 from ..db import Base
 from ..exceptions import RepositoryError, ItemExistsException, AppError
-from src.teltonika_http.util.dtos import TransportListDto, TransportDto
+from src.teltonika_http.util.dtos import ItemListPageDto
 
 
 logger = logging.getLogger("Database")
@@ -38,13 +39,14 @@ def handle_db_errors(func):
 class BaseOrm(ABC):
     LOGGER = "Database"
 
-    def __init__(self, model: Base):
-        self.model: Base = model
+    def __init__(self, model: type[Base], dto: type[BaseModel] = None):
+        self.model: type[Base] = model
+        self._dto: type[BaseModel] = dto
         self.logger = logging.getLogger("Database")
 
     def all_paginate(
             self, session_factory: Callable[[], Session], page_size, page_num, **kwargs
-    ) -> list[Base]:
+    ) -> ItemListPageDto:
         if page_size <= 0:
             raise ValueError("page_size must be > 0")
         if page_num < 0:
@@ -78,8 +80,8 @@ class BaseOrm(ABC):
 
             has_next = page_num + 1 < total_pages
 
-            return TransportListDto(
-                data=[TransportDto.model_validate(item, from_attributes=True) for item in items],
+            return ItemListPageDto(
+                data=[self._dto.model_validate(item, from_attributes=True) for item in items],
                 total_pages=total_pages,
                 total_elements=total_items,
                 has_hext=has_next

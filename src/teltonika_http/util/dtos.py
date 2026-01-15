@@ -40,3 +40,30 @@ class TransportListDto(BaseModel):
 class TransportDto(BaseModel):
     imei: str
     name: str
+
+
+class ConnectionDto(BaseModel):
+    imei: str
+    ip: str
+    port: str
+    server_node: str
+    last_seen: float
+
+
+class ConnectionListDto(BaseModel):
+    data: list[str]
+    offset: int
+
+
+class ItemListOffsetDto(BaseModel):
+    data: list[BaseModel]
+    total_elements: int
+    offset: int
+    has_next: bool
+
+
+class ItemListPageDto(BaseModel):
+    data: list[BaseModel]
+    total_elements: int
+    total_pages: int
+    has_next: bool

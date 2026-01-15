@@ -41,6 +41,15 @@ class Settings():
     SECRET_KEY = os.environ["SECRET_KEY"]
     ADMIN_TOKEN = os.environ["ADMIN_TOKEN"]
 
+    REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
+    REDIS_PORT = os.environ.get("REDIS_PORT", "6379")
+    REDIS_DB = os.environ.get("REDIS_DB", "0")
+    REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD', "supersecretpassword")
+
+    @property
+    def redis_url(self):
+        return f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
+
 
 settings = Settings()
 

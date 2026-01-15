@@ -7,7 +7,7 @@ from src.teltonika_http.util.dtos import TransportDto, TransportListDto
 class TransportService(BaseService):
 
     def __init__(self, db_session):
-        super().__init__(db_session, "transport_service")
+        super().__init__(db_session, "TransportService")
         self.db_orm = TransportOrm
 
     async def get_details(self, imei: str):
