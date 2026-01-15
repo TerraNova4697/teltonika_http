@@ -9,3 +9,6 @@ class RepositoryError(AppError):
 
 class ItemExistsException(AppError):
     ...
+
+class ParameterError(AppError):
+    ...

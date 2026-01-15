@@ -30,6 +30,13 @@ class TokenPairDto(BaseModel):
     token_type: str = "Bearer"
 
 
+class TransportListDto(BaseModel):
+    data: list["TransportDto"]
+    total_pages: int
+    total_elements: int
+    has_hext: bool
+
+
 class TransportDto(BaseModel):
     imei: str
     name: str

@@ -1,7 +1,7 @@
 from .base import BaseService
 from ..infra.db.queries.transport_orm import TransportOrm
-from ..infra.db.exceptions import ItemNotFoundException
-from src.teltonika_http.util.dtos import TransportDto
+from ..infra.db.exceptions import ItemNotFoundException, ParameterError
+from src.teltonika_http.util.dtos import TransportDto, TransportListDto
 
 
 class TransportService(BaseService):
@@ -19,4 +19,11 @@ class TransportService(BaseService):
     async def create(self, transport: TransportDto):
         self.logger.info(transport.model_dump())
         self.db_orm().create(self.db, **transport.model_dump())
+
+    async def get_all(self, page_size: int, page_num: int) -> TransportListDto:
+        self.logger.info("Getting transport list")
+        try:
+            return self.db_orm().all_paginate(self.db, page_size, page_num)
+        except ValueError:
+            raise ParameterError
         

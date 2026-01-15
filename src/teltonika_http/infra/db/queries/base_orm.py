@@ -1,12 +1,16 @@
 from abc import ABC
 import functools
 import logging
+from math import ceil
+from typing import Callable
 
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, update, delete, func
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from sqlalchemy.orm import Session
 
 from ..db import Base
 from ..exceptions import RepositoryError, ItemExistsException, AppError
+from src.teltonika_http.util.dtos import TransportListDto, TransportDto
 
 
 logger = logging.getLogger("Database")
@@ -35,8 +39,51 @@ class BaseOrm(ABC):
     LOGGER = "Database"
 
     def __init__(self, model: Base):
-        self.model = model
+        self.model: Base = model
         self.logger = logging.getLogger("Database")
+
+    def all_paginate(
+            self, session_factory: Callable[[], Session], page_size, page_num, **kwargs
+    ) -> list[Base]:
+        if page_size <= 0:
+            raise ValueError("page_size must be > 0")
+        if page_num < 0:
+            raise ValueError("page_num must be >= 0")
+        
+        offset = page_size * page_num
+        
+        with session_factory() as s:
+
+            # Build the SQL query with given params in kwargs
+            query = (
+                select(func.count()).select_from(self.model)
+            )
+            for k, v in kwargs.items():
+                if hasattr(self.model, k):
+                    query = query.where(getattr(self.model, k) == v)
+
+            # Getting total items and total pages
+            total_items = s.execute(query).scalar_one()
+            total_pages = ceil(total_items / page_size) if total_items else 0
+
+            # Building the main query itself
+            query = (
+                select(self.model).offset(offset).limit(page_size)
+            )
+            for k, v in kwargs.items():
+                if hasattr(self.model, k):
+                    query = query.where(getattr(self.model, k) == v)
+
+            items = s.execute(query).scalars().all()
+
+            has_next = page_num + 1 < total_pages
+
+            return TransportListDto(
+                data=[TransportDto.model_validate(item, from_attributes=True) for item in items],
+                total_pages=total_pages,
+                total_elements=total_items,
+                has_hext=has_next
+            )
 
     @handle_db_errors
     def get_first(self, session_factory, **kwargs) -> Base:
