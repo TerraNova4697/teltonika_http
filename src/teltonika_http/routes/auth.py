@@ -64,4 +64,4 @@ async def refresh(
     #     logger.warning("Missing refresh_token for /auth/refresh")
     #     raise HTTPException(detail="Invalid refresh token", status_code=status.HTTP_401_UNAUTHORIZED)
 
-    return await AuthService.refresh(form_data.refresh_token, db)
+    return await AuthService.refresh(form_data.refresh_token)

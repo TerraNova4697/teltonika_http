@@ -102,7 +102,7 @@ class TokenExpiredException(AppError):
 class AuthService:
 
     @staticmethod
-    async def refresh(refresh_token: str, db: db_dep) -> dict:
+    async def refresh(refresh_token: str) -> dict:
         
         # Логируем факт операции, без самого токена
         logger.info(f"Refreshing access token using refresh token: {refresh_token}")
@@ -113,7 +113,6 @@ class AuthService:
         if decoded_refresh_token := AuthService.decode_token(refresh_token):
             print(decoded_refresh_token)
             access_token, new_refresh = AuthService.__create_token_pair(
-                db,
                 email=decoded_refresh_token["sub"],
                 id=decoded_refresh_token["id"],
             )
@@ -137,12 +136,14 @@ class AuthService:
             logger.warning("Access token payload is missing required claims (sub/id)")
             raise NotValidatedException()
         user = UserOrm().get_first(db, email=email, id=user_id)
-        if not user or not user.is_active:
-            raise HTTPException(status_code=400, detail="Inactive user")
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        if not user.is_active:
+            raise HTTPException(status_code=400, detail="User inactive")
         return CurrentUserDto(email=email, id=user_id)
 
     @staticmethod
-    def __create_token_pair(db: db_dep, **kwargs):
+    def __create_token_pair(**kwargs):
         logger.debug(f"Creating token pair for user_id={kwargs.get('id')} email={kwargs.get('email')}")
         access_token = AuthService.create_access_token(
             {"sub": kwargs['email'], "id": kwargs['id']},
@@ -150,7 +151,6 @@ class AuthService:
         )
         refresh_token = AuthService.create_refresh_token(
             {"sub": kwargs['email'], "id": kwargs['id']},
-            db,
             timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
         )
         logger.info("Token pair created")
@@ -164,7 +164,7 @@ class AuthService:
             logger.warning(f"Could not validate user: username={form_data.username}")
             raise NotValidatedException()
 
-        access_token, refresh_token = AuthService.__create_token_pair(db, email=user.email, id=user.id)
+        access_token, refresh_token = AuthService.__create_token_pair(email=user.email, id=user.id)
         logger.info(f"Token issued for username={form_data.username}")
         return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "Bearer"}
 
@@ -199,7 +199,7 @@ class AuthService:
         return token
 
     @staticmethod
-    def create_refresh_token(data: dict, db, expires_delta: timedelta | None = None) -> str:
+    def create_refresh_token(data: dict, expires_delta: timedelta | None = None) -> str:
         to_encode = data.copy()
         expire = datetime.now(tz=timezone.utc) + (expires_delta if expires_delta else timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
         to_encode.update({"exp": expire})
