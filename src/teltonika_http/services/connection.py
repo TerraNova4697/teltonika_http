@@ -2,10 +2,7 @@ import logging
 
 from .base import BaseService
 from ..infra.db.queries.transport_orm import TransportOrm
-from src.teltonika_http.util.dtos import (
-    TransportDto, TransportListDto, ConnectionListDto, ConnectionDto
-)
-from .transport import TransportService
+from src.teltonika_http.util.dtos import ConnectionListDto
 
 
 logger = logging.getLogger("ConnectionService")

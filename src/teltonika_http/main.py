@@ -1,7 +1,6 @@
 import logging
 
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
 from .routes import admin, auth, users, transport, connection
 
 from src.teltonika_http.config import initial_setup

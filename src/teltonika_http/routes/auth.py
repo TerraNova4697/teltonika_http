@@ -1,15 +1,11 @@
 import logging
 
 from fastapi import APIRouter, HTTPException, Request
-from starlette import status
 
 from src.teltonika_http.util.dependencies import db_dep, token_form_dep
 from src.teltonika_http.util.dtos import TokenPairDto
 from src.teltonika_http.services.auth import (
     AuthService, 
-    NotValidatedException, 
-    NotAuthorizedException,
-    TokenExpiredException,
     token_refresh_form_dep
 )
 

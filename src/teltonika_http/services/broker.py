@@ -2,7 +2,6 @@ from datetime import datetime
 import logging
 
 from src.teltonika_http.infra.broker.redis_client import RedisClient
-from src.teltonika_http.config import settings
 
 
 logger = logging.getLogger("BrokerService")
