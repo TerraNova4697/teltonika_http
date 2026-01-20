@@ -22,6 +22,9 @@ class BrokerService:
     async def remove_connection(self, imei: str):
         return await self._broker.delete(f"{self._prefix}:{imei}")
     
+    async def get_connection_details(self, imei: str):
+        return await self._broker.hgetall(f"{self._prefix}:{imei}")
+    
     async def connection_exists(self, imei: str) -> bool:
         ...
 

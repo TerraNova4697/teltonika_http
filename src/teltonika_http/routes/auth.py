@@ -40,25 +40,11 @@ async def token(request: Request, form_data: token_form_dep, db: db_dep):
         f"username={getattr(form_data, 'username', None)}"
     )
 
-    try:
-        if form_data.grant_type != "password":
-            raise HTTPException(status_code=400, detail="Invalid grant type")
-        result = AuthService.get_token(form_data, db)
-        logger.info(f"Token issued for username={getattr(form_data, 'username', None)} status=200")  # ADDED
-        return result
-    except NotValidatedException:
-        logger.warning(
-            f"Could not validate user for /auth/token username={getattr(form_data, 'username', None)}"
-        )
-        raise HTTPException(
-            detail="Could not validate user.",
-            status_code=status.HTTP_401_UNAUTHORIZED,
-        )
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.exception(f"Unexpected error in /auth/token: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+    if form_data.grant_type != "password":
+        raise HTTPException(status_code=400, detail="Invalid grant type")
+    result = AuthService.get_token(form_data, db)
+    logger.info(f"Token issued for username={getattr(form_data, 'username', None)} status=200")  # ADDED
+    return result
 
 
 @router.post("/refresh", response_model=TokenPairDto)
@@ -82,13 +68,4 @@ async def refresh(
     #     logger.warning("Missing refresh_token for /auth/refresh")
     #     raise HTTPException(detail="Invalid refresh token", status_code=status.HTTP_401_UNAUTHORIZED)
 
-    try:
-        result = await AuthService.refresh(form_data.refresh_token, db)
-        logger.info("Access token refreshed status=200")
-        return result
-    except (NotAuthorizedException, TokenExpiredException, NotValidatedException) as exc:
-        logger.warning(f"Refresh failed: {exc}")  # ADDED
-        raise HTTPException(detail=str(exc), status_code=status.HTTP_401_UNAUTHORIZED)
-    except Exception as e:
-        logger.exception(f"Unexpected error in /auth/refresh: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+    return await AuthService.refresh(form_data.refresh_token, db)

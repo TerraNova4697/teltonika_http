@@ -31,19 +31,13 @@ async def create_user(request: Request, body: AdminCreateUserDto, session: db_de
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You don't have permission to perform this operation!"
         )
-    try:
-        UserOrm().create(
-            session,
-            username=body.username,
-            hashed_password=AuthService.hash_password(body.password),
-            email=body.email
-        )
-    except Exception as e:
-        logger.exception(f"DB error while creating user username={body.username}: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error"
-        )
+
+    UserOrm().create(
+        session,
+        username=body.username,
+        hashed_password=AuthService.hash_password(body.password),
+        email=body.email
+    )
 
     logger.info(f"User created username={body.username} status=200")
     return LoginUserDto(

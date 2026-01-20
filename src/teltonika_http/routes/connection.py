@@ -1,16 +1,10 @@
 import logging
 
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter
 
 from src.teltonika_http.services.connection import ConnectionService
-from src.teltonika_http.services.transport import TransportService
 from src.teltonika_http.util.dependencies import db_dep, broker_service_dep
 from src.teltonika_http.services.auth import current_user_dep
-from src.teltonika_http.infra.db.exceptions import (
-    ItemNotFoundException, 
-    ItemExistsException,
-    ParameterError
-)
 from src.teltonika_http.util.dtos import ConnectionListDto, ConnectionDto
 
 
@@ -31,21 +25,16 @@ async def get_all(
     page_size: int,
     offset: int,
 ):
-    try:
-        res = await ConnectionService(db, broker).get_all(page_size, offset)
-        return res
-    except ParameterError as e:
-        logger.exception(e)
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad request")
-    except Exception as e:
-        logger.exception(e)
-        raise HTTPException(status_code=500, detail="Internal server error")
+    res = await ConnectionService(db, broker).get_all(page_size, offset)
+    return res
     
 
-# @router.get("/by-imei/{imei}", response_model=ConnectionDto)
-# async def read_connection(
-#     broker: broker_service_dep,
-#     _: current_user_dep,
-#     imei: str
-# ):
+@router.get("/by-imei/{imei}", response_model=ConnectionDto)
+async def read_connection(
+    broker: broker_service_dep,
+    _: current_user_dep,
+    imei: str
+) -> ConnectionDto:
+    res = await broker.get_connection_details(imei)
+    return ConnectionDto.model_validate(res)
     

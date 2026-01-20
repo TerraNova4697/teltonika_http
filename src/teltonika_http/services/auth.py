@@ -14,6 +14,7 @@ from src.teltonika_http.util.dependencies import db_dep
 from src.teltonika_http.infra.db.queries import UserOrm
 from src.teltonika_http.util.dtos import UserDto, CurrentUserDto
 from src.teltonika_http import config
+from src.teltonika_http.util.exceptions import AppError
 
 logger = logging.getLogger(__name__)
 
@@ -50,20 +51,52 @@ class OAuth2RefreshTokenRequestForm:
 token_refresh_form_dep = Annotated[OAuth2RefreshTokenRequestForm, Depends()]
 
 
-class NotAuthenticatedException(Exception):
-    details = "Could not authenticate."
+class NotAuthenticatedException(AppError):
+    def __init__(
+            self, 
+            code: str = "NOT_AUTHENTICATED_ERROR", 
+            message: str = "Could not authenticate", 
+            status_code: int = 401
+        ):
+        self.code = code
+        self.message = message
+        self.status_code = status_code
 
 
-class NotValidatedException(Exception):
-    details = "Could not validate token."
+class NotValidatedException(AppError):
+    def __init__(
+            self, 
+            code: str = "NOT_VALIDATED_ERROR", 
+            message: str = "Could not validate token", 
+            status_code: int = 401
+        ):
+        self.code = code
+        self.message = message
+        self.status_code = status_code
 
 
-class NotAuthorizedException(Exception):
-    details = "Could not authorize."
+class NotAuthorizedException(AppError):
+    def __init__(
+            self, 
+            code: str = "NOT_AUTHORIZED_ERROR", 
+            message: str = "Not enough permissions", 
+            status_code: int = 403
+        ):
+        self.code = code
+        self.message = message
+        self.status_code = status_code
 
 
-class TokenExpiredException(Exception):
-    details = "Token expired."
+class TokenExpiredException(AppError):
+    def __init__(
+            self, 
+            code: str = "TOKEN_EXPIRED_ERROR", 
+            message: str = "Token expired", 
+            status_code: int = 401
+        ):
+        self.code = code
+        self.message = message
+        self.status_code = status_code
 
 
 class AuthService:
@@ -194,10 +227,10 @@ class AuthService:
             return jwt.decode(token, config.settings.SECRET_KEY, algorithms=[ALGORITHM])
         except jwt.ExpiredSignatureError:
             logger.warning("Access token expired")
-            raise TokenExpiredException("Token expired.")
+            raise TokenExpiredException()
         except jwt.InvalidTokenError:
             logger.warning("Invalid access token")
-            raise NotValidatedException("Could not validate token.")
+            raise NotValidatedException()
 
 
 
